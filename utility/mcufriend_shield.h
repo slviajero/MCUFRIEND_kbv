@@ -22,7 +22,7 @@
 
 #if 0
 //################################### UNO ##############################
-#elif defined(__AVR_ATmega328P__) || defined(__AVR_ATmega328PB__)       //regular UNO shield on UNO
+#elif defined(__AVR_ATmega328P__) || defined(__AVR_ATmega328PB__) //regular UNO shield on UNO
 //LCD pins  |D7 |D6 |D5 |D4 |D3 |D2 |D1 |D0 | |RD |WR |RS |CS |RST|
 //AVR   pin |PD7|PD6|PD5|PD4|PD3|PD2|PB1|PB0| |PC0|PC1|PC2|PC3|PC4|
 //UNO pins  |7  |6  |5  |4  |3  |2  |9  |8  | |A0 |A1 |A2 |A3 |A4 |
@@ -259,7 +259,7 @@ void write_8(uint8_t val)
  // configure macros for data bus
 #define DMASK 0x0030C3C0
  //  #define write_8(x) PORT->Group[0].OUT.reg = (PORT->Group[0].OUT.reg & ~DMASK)|(((x) & 0x0F) << 6)|(((x) & 0x30) << 10)|(((x) & 0xC0)<<14)
-#if defined(ARDUINO_SAMD_ZERO) && !defined(USE_M0_PINOUT)   // American ZERO
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAMD_ZERO)   // American ZERO
 //LCD pins   |D7  |D6  |D5  |D4  |D3  |D2  |D1  |D0  | |RD |WR |RS  |CS  |RST |
 //SAMD21 pin |PA21|PA20|PA15|PA8 |PA9 |PA14|PA7 |PA6 | |PA2|PB8|PB9 |PA4 |PA5 |
 #define write_8(x) {\
@@ -1198,7 +1198,49 @@ static void setReadDir()
 
 //############################# END OF BLOCKS ############################
 #else
-#error MCU unsupported
+// Try to use the standard Arduino commands - test code for Renesas
+//LCD pins  |D7 |D6 |D5 |D4 |D3 |D2 |D1 |D0 | |RD |WR |RS |CS |RST|
+//AVR   pin |PD7|PD6|PD5|PD4|PD3|PD2|PB1|PB0| |PC0|PC1|PC2|PC3|PC4|
+//UNO pins  |7  |6  |5  |4  |3  |2  |9  |8  | |A0 |A1 |A2 |A3 |A4 |
+
+#define RD_PORT 0
+#define RD_PIN  A0
+#define WR_PORT 0
+#define WR_PIN  A1
+#define CD_PORT 0
+#define CD_PIN  A2
+#define CS_PORT 0
+#define CS_PIN  A3
+#define RESET_PORT 0
+#define RESET_PIN  A4
+
+#define write_8(x)    { digitalWrite(8, (x&0b00000001)); \
+                        digitalWrite(9, (x&0b00000010)>>1); \
+                        digitalWrite(2, (x&0b00000100)>>2); \
+                        digitalWrite(3, (x&0b00001000)>>3); \
+                        digitalWrite(4, (x&0b00010000)>>4); \
+                        digitalWrite(5, (x&0b00100000)>>5); \
+                        digitalWrite(6, (x&0b01000000)>>6); \
+                        digitalWrite(7, (x&0b10000000)>>7); \
+                       }
+
+#define read_8()      ( digitalRead(8)|(digitalRead(9)<<1)|(digitalRead(2)<<2)|(digitalRead(3)<<3)|(digitalRead(4)<<4)| \
+                        (digitalRead(5)<<5)|(digitalRead(6)<<6)|(digitalRead(7)<<7) )
+
+#define setWriteDir() { pinMode(8, OUTPUT);  pinMode(9, OUTPUT); pinMode(2, OUTPUT);  pinMode(3, OUTPUT); \
+                        pinMode(4, OUTPUT);  pinMode(5, OUTPUT); pinMode(6, OUTPUT);  pinMode(7, OUTPUT); } 
+#define setReadDir()  { pinMode(8, INPUT);  pinMode(9, INPUT); pinMode(2, INPUT);  pinMode(3, INPUT); \
+                        pinMode(4, INPUT);  pinMode(5, INPUT); pinMode(6, INPUT);  pinMode(7, INPUT); }  
+
+#define write8(x)     { write_8(x); WR_STROBE; }
+#define write16(x)    { uint8_t h = (x)>>8, l = x; write8(h); write8(l); }
+#define READ_8(dst)   { RD_STROBE; dst = read_8(); RD_IDLE; }
+#define READ_16(dst)  { uint8_t hi; READ_8(hi); READ_8(dst); dst |= (hi << 8); }
+
+#define PIN_LOW(p, b) digitalWrite(b, 0) 
+#define PIN_HIGH(p, b) digitalWrite(b, 1)
+#define PIN_OUTPUT(p, b) pinMode(b, OUTPUT)
+
 #endif                          // regular UNO shields on Arduino boards
 
 #endif                          //!defined(USE_SPECIAL) || defined (USE_SPECIAL_FAIL)
