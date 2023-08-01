@@ -52,6 +52,48 @@
 #define PIN_HIGH(p, b)       (p) |= (1<<(b))
 #define PIN_OUTPUT(p, b)     *(&p-1) |= (1<<(b))
 
+//################################### UNO R4  ##############################
+#elif defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_UNOR4_WIFI)   // regular UNO shield on UNO R4
+
+#define RD_PORT 0
+#define RD_PIN  A0
+#define WR_PORT 0
+#define WR_PIN  A1
+#define CD_PORT 0
+#define CD_PIN  A2
+#define CS_PORT 0
+#define CS_PIN  A3
+#define RESET_PORT 0
+#define RESET_PIN  A4
+
+#define write_8(x)    { \ 
+    (x & 0x01) ? R_PORT3->POSR = bit(4) : R_PORT3->PORR = bit(4); \
+    (x & 0x02) ? R_PORT3->POSR = bit(3) : R_PORT3->PORR = bit(3); \
+    (x & 0x04) ? R_PORT1->POSR = bit(5) : R_PORT1->PORR = bit(5); \
+    (x & 0x08) ? R_PORT1->POSR = bit(4) : R_PORT1->PORR = bit(4); \
+    (x & 0x10) ? R_PORT1->POSR = bit(3) : R_PORT1->PORR = bit(3); \
+    (x & 0x20) ? R_PORT1->POSR = bit(2) : R_PORT1->PORR = bit(2); \
+    (x & 0x40) ? R_PORT1->POSR = bit(6) : R_PORT1->PORR = bit(6); \
+    (x & 0x80) ? R_PORT1->POSR = bit(7) : R_PORT1->PORR = bit(7); \
+                       }
+
+#define read_8()      ( digitalRead(8)|(digitalRead(9)<<1)|(digitalRead(2)<<2)|(digitalRead(3)<<3)|(digitalRead(4)<<4)| \
+                        (digitalRead(5)<<5)|(digitalRead(6)<<6)|(digitalRead(7)<<7) )
+
+#define setWriteDir() { pinMode(8, OUTPUT);  pinMode(9, OUTPUT); pinMode(2, OUTPUT);  pinMode(3, OUTPUT); \
+                        pinMode(4, OUTPUT);  pinMode(5, OUTPUT); pinMode(6, OUTPUT);  pinMode(7, OUTPUT); } 
+#define setReadDir()  { pinMode(8, INPUT);  pinMode(9, INPUT); pinMode(2, INPUT);  pinMode(3, INPUT); \
+                        pinMode(4, INPUT);  pinMode(5, INPUT); pinMode(6, INPUT);  pinMode(7, INPUT); }  
+
+#define write8(x)     { write_8(x); WR_STROBE; }
+#define write16(x)    { uint8_t h = (x)>>8, l = x; write8(h); write8(l); }
+#define READ_8(dst)   { RD_STROBE; dst = read_8(); RD_IDLE; }
+#define READ_16(dst)  { uint8_t hi; READ_8(hi); READ_8(dst); dst |= (hi << 8); }
+
+#define PIN_LOW(p, b) digitalWrite(b, 0) 
+#define PIN_HIGH(p, b) digitalWrite(b, 1)
+#define PIN_OUTPUT(p, b) pinMode(b, OUTPUT)
+
 //################################### MEGA2560 ##############################
 #elif defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)       //regular UNO shield on MEGA2560
 //LCD pins  |D7 |D6 |D5 |D4 |D3 |D2 |D1 |D0 | |RD |WR |RS |CS |RST|
