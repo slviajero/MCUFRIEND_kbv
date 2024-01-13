@@ -53,7 +53,7 @@
 #define PIN_OUTPUT(p, b)     *(&p-1) |= (1<<(b))
 
 //################################### UNO R4  ##############################
-#elif defined(ARDUINO_UNOR4_MINIMA) // regular UNO shield on UNO R4
+#elif defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_UNOR4_WIFI)  // regular UNO shield on UNO R4
 
 #define RD_PORT 0
 #define RD_PIN  A0
@@ -66,6 +66,7 @@
 #define RESET_PORT 0
 #define RESET_PIN  A4
 
+#ifdef ARDUINO_UNOR4_MINIMA
 #define write_8(x)    { \ 
     (x & 0x01) ? R_PORT3->POSR = bit(4) : R_PORT3->PORR = bit(4); \
     (x & 0x02) ? R_PORT3->POSR = bit(3) : R_PORT3->PORR = bit(3); \
@@ -76,6 +77,18 @@
     (x & 0x40) ? R_PORT1->POSR = bit(6) : R_PORT1->PORR = bit(6); \
     (x & 0x80) ? R_PORT1->POSR = bit(7) : R_PORT1->PORR = bit(7); \
                        }
+#else 
+#define write_8(x)    { \ 
+    (x & 0x01) ? R_PORT3->POSR = bit(4) : R_PORT3->PORR = bit(4); \
+    (x & 0x02) ? R_PORT3->POSR = bit(3) : R_PORT3->PORR = bit(3); \
+    (x & 0x04) ? R_PORT1->POSR = bit(4) : R_PORT1->PORR = bit(4); \
+    (x & 0x08) ? R_PORT1->POSR = bit(5) : R_PORT1->PORR = bit(5); \
+    (x & 0x10) ? R_PORT1->POSR = bit(6) : R_PORT1->PORR = bit(6); \
+    (x & 0x20) ? R_PORT1->POSR = bit(7) : R_PORT1->PORR = bit(7); \
+    (x & 0x40) ? R_PORT1->POSR = bit(11) : R_PORT1->PORR = bit(11); \
+    (x & 0x80) ? R_PORT1->POSR = bit(12) : R_PORT1->PORR = bit(12); \
+		}
+#endif
 
 #define read_8()      ( digitalRead(8)|(digitalRead(9)<<1)|(digitalRead(2)<<2)|(digitalRead(3)<<3)|(digitalRead(4)<<4)| \
                         (digitalRead(5)<<5)|(digitalRead(6)<<6)|(digitalRead(7)<<7) )
