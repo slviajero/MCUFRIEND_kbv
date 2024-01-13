@@ -53,7 +53,7 @@
 #define PIN_OUTPUT(p, b)     *(&p-1) |= (1<<(b))
 
 //################################### UNO R4  ##############################
-#elif defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_UNOR4_WIFI)   // regular UNO shield on UNO R4
+#elif defined(ARDUINO_UNOR4_MINIMA) // regular UNO shield on UNO R4
 
 #define RD_PORT 0
 #define RD_PIN  A0
